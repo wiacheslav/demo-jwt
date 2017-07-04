@@ -1,0 +1,3 @@
+rootProject.name = 'demo-jwt'
+
+include 'web-ui'
