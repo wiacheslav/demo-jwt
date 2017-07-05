@@ -18,7 +18,9 @@ node {
 }
 
 task build(type: NpmTask) {
-    args = ['run', 'build', '--prod']
+  group = 'build'
+  description = 'Build frontend folder for production'
+  args = ['run', 'buildProd']
 }
 
 build.dependsOn(npm_install)
