@@ -35,19 +35,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private TokenAuthenticationFilter tokenAuthenticationFilter;
     @Autowired
     private LogoutHandler logoutHandler;
-    @Autowired
-    private TokenService tokenService;
-    @Autowired
-    private TokenRepository tokenRepository;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
-    }
-
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/**");
     }
 
     @Override
@@ -61,6 +52,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .authorizeRequests()
                 .antMatchers("/v1.0/login").permitAll()
                 .antMatchers("/v1.0/**").authenticated()
+                .antMatchers("/**").permitAll()
                 .and()
         .addFilterBefore(restLoginFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

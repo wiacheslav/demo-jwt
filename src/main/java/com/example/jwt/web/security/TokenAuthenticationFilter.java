@@ -53,6 +53,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.clearContext();
                 }
             }
+        } else {
+            filterChain.doFilter(request, response);
         }
     }
 

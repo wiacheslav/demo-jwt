@@ -19,9 +19,8 @@ export class LoginFormComponent implements OnInit {
     this.userService.login({
       username: email.value,
       password: password.value
-    }).catch(reason => {
+    }).then(value => {
       this.loading = false;
-      return false;
     });
     return false;
   }

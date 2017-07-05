@@ -8,6 +8,6 @@
     <label for="password">Password</label>
     <input type="password" name="password" id="password" class="form-control" placeholder="Password" required #password>
   </div>
-  <button [disabled]="loading" class="btn btn-default" (click)="login(email, password)">Login</button>
+  <button [disabled]="loading" class="btn btn-default" type="submit" (click)="login(email, password)">Login</button>
 </form>
 </div>
