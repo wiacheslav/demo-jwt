@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -43,18 +44,19 @@ public class TokenService {
         Claims claims = Jwts.claims();
         claims.setSubject(user.getUsername());
         claims.put("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        claims.put("uuid", UUID.randomUUID());
         claims.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(ttl)));
         return Jwts.builder().setClaims(claims).signWith(SignatureAlgorithm.HS512, this.secretKey).compact();
     }
 
     public Authentication getAuthentication(String token) {
-        if (tokenRepository.ifPresent(token)) {
-            throw new RuntimeException("Token is blocked");
-        }
         Claims claims = Jwts.parser()
                 .setSigningKey(secretKey)
                 .parseClaimsJws(token)
                 .getBody();
+        if (tokenRepository.ifPresent(getUUID(claims))) {
+            throw new RuntimeException("Token is blocked");
+        }
         String username = claims.getSubject();
         List<String> roles = (List<String>) claims.get("roles");
         return new UsernamePasswordAuthenticationToken(username, null,
@@ -62,16 +64,24 @@ public class TokenService {
     }
 
     public void logout(String token) {
-        tokenRepository.blockToken(token, getTtl(token));
+        Claims claims = getClaims(token);
+        tokenRepository.blockToken(getUUID(claims), getTtl(claims));
     }
 
-    private long getTtl(String token) {
-        Claims claims = Jwts.parser()
+    private Claims getClaims(String token) {
+        return Jwts.parser()
                 .setSigningKey(secretKey)
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    private long getTtl(Claims claims) {
         Instant expiration = claims.getExpiration().toInstant();
         Instant now = Instant.now();
         return Duration.between(now, expiration).getSeconds();
+    }
+
+    private String getUUID(Claims claims) {
+        return (String) claims.get("uuid");
     }
 }
