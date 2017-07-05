@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,24 +27,31 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private TokenService tokenService;
+    private AntPathRequestMatcher antPathRequestMatcher;
+
+    public TokenAuthenticationFilter() {
+        this.antPathRequestMatcher = new AntPathRequestMatcher("/v1.0/**");
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
-            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"" + request.getRequestURI() + "\",error=\"invalid_request\"");
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-            SecurityContextHolder.clearContext();
-        } else {
-            try {
-                String token = authHeader.replace("Bearer ", "");
-                Authentication authentication = tokenService.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                filterChain.doFilter(request, response);
-            } catch (Exception ex) {
-                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"" + request.getRequestURI() + "\",error=\"invalid_token\"");
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        if (this.antPathRequestMatcher.matches(request)) {
+            String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+            if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
+                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"" + request.getRequestURI() + "\",error=\"invalid_request\"");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 SecurityContextHolder.clearContext();
+            } else {
+                try {
+                    String token = authHeader.replace("Bearer ", "");
+                    Authentication authentication = tokenService.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    filterChain.doFilter(request, response);
+                } catch (Exception ex) {
+                    response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"" + request.getRequestURI() + "\",error=\"invalid_token\"");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    SecurityContextHolder.clearContext();
+                }
             }
         }
     }
