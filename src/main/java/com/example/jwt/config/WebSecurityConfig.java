@@ -54,8 +54,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .logout().clearAuthentication(false)
                 .invalidateHttpSession(false)
-                .logoutUrl("/auth/logout")
-                .defaultLogoutSuccessHandlerFor(logoutHandler, new AntPathRequestMatcher("/auth/logout", "POST"));
+                .logoutUrl("/v1.0/auth/logout")
+                .defaultLogoutSuccessHandlerFor(logoutHandler, new AntPathRequestMatcher("/v1.0/auth/logout", "POST"));
         /*.defaultLogoutSuccessHandlerFor((request, response, authentication) -> {
             System.out.println(authentication);
             String token = request.getHeader(HttpHeaders.AUTHORIZATION).replace("Bearer ", "");

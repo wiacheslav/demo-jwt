@@ -36,7 +36,7 @@ public class RestLoginFilter extends AbstractAuthenticationProcessingFilter {
     private TokenService tokenService;
 
     public RestLoginFilter() {
-        super(new AntPathRequestMatcher("/auth/login", HttpMethod.POST.name()));
+        super(new AntPathRequestMatcher("/v1.0/auth/login", HttpMethod.POST.name()));
     }
 
     @Override
